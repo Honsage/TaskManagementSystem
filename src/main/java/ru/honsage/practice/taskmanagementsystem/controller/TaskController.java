@@ -2,15 +2,14 @@ package ru.honsage.practice.taskmanagementsystem.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.honsage.practice.taskmanagementsystem.Task;
 import ru.honsage.practice.taskmanagementsystem.service.TaskService;
 
 import java.util.List;
 
 @RestController
+@RequestMapping("/tasks")
 public class TaskController {
     private static final Logger log = LoggerFactory.getLogger(TaskController.class);
 
@@ -20,15 +19,33 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @GetMapping("/tasks")
+    @GetMapping
     public List<Task> getAllTasks() {
         log.info("Method 'getAllTasks' is invoked");
         return taskService.getAllTasks();
     }
 
-    @GetMapping("/tasks/{id}")
+    @GetMapping("/{id}")
     public Task getTaskById(@PathVariable("id") Long id) {
         log.info("Method 'getTaskById' is invoked with id = {}", id);
         return taskService.getTaskById(id);
+    }
+
+    @PostMapping
+    public Task createTask(@RequestBody Task taskToCreate) {
+        return null;
+    }
+
+    @PutMapping("/{id}")
+    public Task updateTask(
+            @PathVariable("id") Long id,
+            @RequestBody Task taskToUpdate
+    ) {
+        return null;
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteTask(@PathVariable("id") Long id) {
+        return;
     }
 }
