@@ -7,7 +7,9 @@ import ru.honsage.practice.taskmanagementsystem.TaskStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Service
 public class TaskService {
@@ -40,4 +42,15 @@ public class TaskService {
                     TaskPriority.LOW
             )
     );
+
+    public List<Task> getAllTasks() {
+        return mockTaskMap.values().stream().toList();
+    }
+
+    public Task getTaskById(Long id) {
+        if (!mockTaskMap.containsKey(id)) {
+            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
+        }
+        return mockTaskMap.get(id);
+    }
 }
