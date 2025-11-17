@@ -20,13 +20,13 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @GetMapping("")
+    @GetMapping("/tasks")
     public List<Task> getAllTasks() {
         log.info("Method 'getAllTasks' is invoked");
         return taskService.getAllTasks();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/tasks/{id}")
     public Task getTaskById(@PathVariable("id") Long id) {
         log.info("Method 'getTaskById' is invoked with id = {}", id);
         return taskService.getTaskById(id);
