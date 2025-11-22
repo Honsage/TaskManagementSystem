@@ -72,4 +72,15 @@ public class TaskController {
         }
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{id}/progress")
+    public ResponseEntity<Task> makeTaskProgress(@PathVariable("id") Long id) {
+        try {
+            return ResponseEntity.ok(taskService.setTaskProgress(id));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
 }
