@@ -40,6 +40,7 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody Task taskToCreate) {
+        log.info("Method 'createTask' is invoked with task = {}", taskToCreate);
         try {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(taskService.createTask(taskToCreate));
@@ -53,6 +54,7 @@ public class TaskController {
             @PathVariable("id") Long id,
             @RequestBody Task taskToUpdate
     ) {
+        log.info("Method 'updateTask' is invoked with id = {}, task = {}", id, taskToUpdate);
         try {
             return ResponseEntity.ok().body(taskService.updateTask(id, taskToUpdate));
         } catch (NoSuchElementException e) {
@@ -64,6 +66,7 @@ public class TaskController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable("id") Long id) {
+        log.info("Method 'deleteTask' is invoked with id = {}", id);
         try {
             taskService.deleteTask(id);
         } catch (NoSuchElementException e) {
@@ -74,6 +77,7 @@ public class TaskController {
 
     @PostMapping("/{id}/progress")
     public ResponseEntity<Task> makeTaskProgress(@PathVariable("id") Long id) {
+        log.info("Method 'makeTaskProgress' is invoked with id = {}", id);
         try {
             return ResponseEntity.ok(taskService.makeTaskProgress(id));
         } catch (NoSuchElementException e) {
