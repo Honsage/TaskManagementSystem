@@ -2,55 +2,110 @@ package ru.honsage.practice.taskmanagementsystem.service;
 
 import org.springframework.stereotype.Service;
 import ru.honsage.practice.taskmanagementsystem.Task;
-import ru.honsage.practice.taskmanagementsystem.TaskPriority;
 import ru.honsage.practice.taskmanagementsystem.TaskStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TaskService {
-    private final Map<Long, Task> mockTaskMap = Map.of(
-            1L, new Task(
-                    1L,
-                    1L,
-                    2L,
-                    TaskStatus.DONE,
-                    LocalDateTime.of(2025, 11, 4, 16, 23),
-                    LocalDate.now().minusDays(3),
-                    TaskPriority.MEDIUM
-            ),
-            2L, new Task(
-                    2L,
-                    2L,
-                    2L,
-                    TaskStatus.IN_PROGRESS,
-                    LocalDateTime.of(2025, 11, 16, 00, 23),
-                    LocalDate.of(2025, 11, 27),
-                    TaskPriority.HIGH
-            ),
-            3L, new Task(
-                    3L,
-                    1L,
-                    1L,
-                    TaskStatus.CREATED,
-                    LocalDateTime.of(2025, 11, 17, 18, 14),
-                    LocalDate.now().plusDays(1),
-                    TaskPriority.LOW
-            )
-    );
+    private final AtomicLong idCounter;
+    private final Map<Long, Task> taskMap;
+
+    public TaskService() {
+        idCounter = new AtomicLong();
+        taskMap = new HashMap<>();
+    }
 
     public List<Task> getAllTasks() {
-        return mockTaskMap.values().stream().toList();
+        return taskMap.values().stream().toList();
     }
 
     public Task getTaskById(Long id) {
-        if (!mockTaskMap.containsKey(id)) {
+        if (!taskMap.containsKey(id)) {
             throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
         }
-        return mockTaskMap.get(id);
+        return taskMap.get(id);
+    }
+
+    public Task createTask(Task taskToCreate) {
+        if (taskToCreate.id() != null) {
+            throw new IllegalArgumentException("Id should be empty!");
+        }
+        if (taskToCreate.status() != null) {
+            throw new IllegalArgumentException("Status should be empty!");
+        }
+        if (taskToCreate.createDateTime() != null) {
+            throw new IllegalArgumentException("Creation DateTime should be empty!");
+        }
+        var newTask = new Task(
+                idCounter.incrementAndGet(),
+                taskToCreate.creatorId(),
+                taskToCreate.assignedUserId(),
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                taskToCreate.deadlineDate(),
+                taskToCreate.priority()
+        );
+        taskMap.put(newTask.id(), newTask);
+        return newTask;
+    }
+
+    public Task updateTask(Long id, Task taskToUpdate) {
+        if (!taskMap.containsKey(id)) {
+            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
+        }
+        Task task = taskMap.get(id);
+        if (task.status() == TaskStatus.DONE) {
+            throw new IllegalStateException("Cannot modify task that is done!");
+        }
+        Task updatedTask = new Task(
+                task.id(),
+                taskToUpdate.creatorId(),
+                taskToUpdate.assignedUserId(),
+                TaskStatus.CREATED,
+                taskToUpdate.createDateTime(),
+                taskToUpdate.deadlineDate(),
+                taskToUpdate.priority()
+        );
+        taskMap.put(task.id(), updatedTask);
+        return updatedTask;
+    }
+
+    public void deleteTask(Long id) {
+        if (!taskMap.containsKey(id)) {
+            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
+        }
+        taskMap.remove(id);
+    }
+
+    public Task setTaskProgress(Long id) {
+        if (!taskMap.containsKey(id)) {
+            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
+        }
+        Task task = taskMap.get(id);
+        if (isTimeConflict(task)) {
+            throw new IllegalStateException(String.format("Task with id: %d, status: %s is overdue!", id, task.status()));
+        }
+        Task progressedTask = new Task(
+                task.id(),
+                task.creatorId(),
+                task.assignedUserId(),
+                TaskStatus.IN_PROGRESS,
+                task.createDateTime(),
+                task.deadlineDate(),
+                task.priority()
+        );
+        taskMap.put(task.id(), progressedTask);
+        return progressedTask;
+    }
+
+    public boolean isTimeConflict(Task task) {
+        return task.deadlineDate().isBefore(LocalDate.now());
     }
 }
