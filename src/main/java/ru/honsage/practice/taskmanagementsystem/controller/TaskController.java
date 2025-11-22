@@ -25,16 +25,16 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<List<Task>> getAllTasks() {
         log.info("Method 'getAllTasks' is invoked");
-        return ResponseEntity.status(HttpStatus.OK).body(taskService.getAllTasks());
+        return ResponseEntity.ok().body(taskService.getAllTasks());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable("id") Long id) {
         log.info("Method 'getTaskById' is invoked with id = {}", id);
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(taskService.getTaskById(id));
+            return ResponseEntity.ok().body(taskService.getTaskById(id));
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -44,7 +44,7 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(taskService.createTask(taskToCreate));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -54,10 +54,9 @@ public class TaskController {
             @RequestBody Task taskToUpdate
     ) {
         try {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(taskService.updateTask(id, taskToUpdate));
+            return ResponseEntity.ok().body(taskService.updateTask(id, taskToUpdate));
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
@@ -68,7 +67,7 @@ public class TaskController {
         try {
             taskService.deleteTask(id);
         } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build();
     }
@@ -76,7 +75,7 @@ public class TaskController {
     @PostMapping("/{id}/progress")
     public ResponseEntity<Task> makeTaskProgress(@PathVariable("id") Long id) {
         try {
-            return ResponseEntity.ok(taskService.setTaskProgress(id));
+            return ResponseEntity.ok(taskService.makeTaskProgress(id));
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
