@@ -2,11 +2,14 @@ package ru.honsage.practice.taskmanagementsystem.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.honsage.practice.taskmanagementsystem.Task;
 import ru.honsage.practice.taskmanagementsystem.service.TaskService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/tasks")
@@ -20,32 +23,53 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<Task> getAllTasks() {
+    public ResponseEntity<List<Task>> getAllTasks() {
         log.info("Method 'getAllTasks' is invoked");
-        return taskService.getAllTasks();
+        return ResponseEntity.status(HttpStatus.OK).body(taskService.getAllTasks());
     }
 
     @GetMapping("/{id}")
-    public Task getTaskById(@PathVariable("id") Long id) {
+    public ResponseEntity<Task> getTaskById(@PathVariable("id") Long id) {
         log.info("Method 'getTaskById' is invoked with id = {}", id);
-        return taskService.getTaskById(id);
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(taskService.getTaskById(id));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @PostMapping
-    public Task createTask(@RequestBody Task taskToCreate) {
-        return null;
+    public ResponseEntity<Task> createTask(@RequestBody Task taskToCreate) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(taskService.createTask(taskToCreate));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @PutMapping("/{id}")
-    public Task updateTask(
+    public ResponseEntity<Task> updateTask(
             @PathVariable("id") Long id,
             @RequestBody Task taskToUpdate
     ) {
-        return null;
+        try {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(taskService.updateTask(id, taskToUpdate));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTask(@PathVariable("id") Long id) {
-        return;
+    public ResponseEntity<Void> deleteTask(@PathVariable("id") Long id) {
+        try {
+            taskService.deleteTask(id);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok().build();
     }
 }
