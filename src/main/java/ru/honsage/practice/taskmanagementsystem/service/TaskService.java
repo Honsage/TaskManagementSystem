@@ -64,12 +64,15 @@ public class TaskService {
         if (task.status() == TaskStatus.DONE) {
             throw new IllegalStateException("Cannot modify task that is done!");
         }
+        if (taskToUpdate.createDateTime() != null) {
+            throw new IllegalArgumentException("Creation DateTime should be empty!");
+        }
         Task updatedTask = new Task(
                 task.id(),
                 taskToUpdate.creatorId(),
                 taskToUpdate.assignedUserId(),
                 TaskStatus.CREATED,
-                taskToUpdate.createDateTime(),
+                task.createDateTime(),
                 taskToUpdate.deadlineDate(),
                 taskToUpdate.priority()
         );
