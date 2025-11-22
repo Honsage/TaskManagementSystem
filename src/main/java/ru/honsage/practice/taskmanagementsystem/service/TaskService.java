@@ -84,7 +84,7 @@ public class TaskService {
         taskMap.remove(id);
     }
 
-    public Task setTaskProgress(Long id) {
+    public Task makeTaskProgress(Long id) {
         if (!taskMap.containsKey(id)) {
             throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
         }
@@ -105,7 +105,7 @@ public class TaskService {
         return progressedTask;
     }
 
-    public boolean isTimeConflict(Task task) {
+    private boolean isTimeConflict(Task task) {
         return task.deadlineDate().isBefore(LocalDate.now());
     }
 }
