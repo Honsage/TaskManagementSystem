@@ -9,11 +9,7 @@ import ru.honsage.practice.taskmanagementsystem.repository.TaskRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TaskService {
@@ -95,7 +91,7 @@ public class TaskService {
         repository.deleteById(id);
     }
 
-    public Task makeTaskProgress(Long id) {
+    public Task makeTaskInProgress(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException(String.format("Task with id: %d is not found", id));
         }
@@ -103,6 +99,16 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Task with id: %d is not found", id)
                 ));
+        var assignedUserId = taskEntity.getAssignedUserId();
+        if (assignedUserId == null) {
+            throw new IllegalStateException(String.format("Task with id: %d has no assigned user", id));
+        }
+        var tasks = repository.findAllByAssignedUserIdAndStatus(assignedUserId, TaskStatus.IN_PROGRESS);
+        if (tasks.size() > 4) {
+            throw new IllegalStateException(
+                    String.format("User with id: %d already has more than 4 tasks", assignedUserId)
+            );
+        }
         if (isTimeConflict(taskEntity)) {
             throw new IllegalStateException(
                     String.format("Task with id: %d, status: %s is overdue!", id, taskEntity.getStatus())

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.honsage.practice.taskmanagementsystem.Task;
+import ru.honsage.practice.taskmanagementsystem.domain.Task;
 import ru.honsage.practice.taskmanagementsystem.service.TaskService;
 
 import java.util.List;
@@ -77,11 +77,11 @@ public class TaskController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/progress")
-    public ResponseEntity<Task> makeTaskProgress(@PathVariable("id") Long id) {
+    @PostMapping("/{id}/start")
+    public ResponseEntity<Task> makeTaskInProgress(@PathVariable("id") Long id) {
         log.info("Method 'makeTaskProgress' is invoked with id = {}", id);
         try {
-            return ResponseEntity.ok(taskService.makeTaskProgress(id));
+            return ResponseEntity.ok(taskService.makeTaskInProgress(id));
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
