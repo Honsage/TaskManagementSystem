@@ -1,8 +1,11 @@
 package ru.honsage.practice.taskmanagementsystem.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
-import ru.honsage.practice.taskmanagementsystem.Task;
-import ru.honsage.practice.taskmanagementsystem.TaskStatus;
+import ru.honsage.practice.taskmanagementsystem.domain.Task;
+import ru.honsage.practice.taskmanagementsystem.domain.TaskStatus;
+import ru.honsage.practice.taskmanagementsystem.repository.TaskEntity;
+import ru.honsage.practice.taskmanagementsystem.repository.TaskRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,23 +17,24 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TaskService {
-    private final AtomicLong idCounter;
-    private final Map<Long, Task> taskMap;
+    private final TaskRepository repository;
 
-    public TaskService() {
-        idCounter = new AtomicLong();
-        taskMap = new HashMap<>();
+    public TaskService(TaskRepository repository) {
+        this.repository = repository;
     }
 
     public List<Task> getAllTasks() {
-        return taskMap.values().stream().toList();
+        List<TaskEntity> allEntities = repository.findAll();
+        return allEntities.stream()
+                .map(this::toDomainTask).toList();
     }
 
     public Task getTaskById(Long id) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
-        }
-        return taskMap.get(id);
+        var entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Task with id: %d is not found", id)
+                ));
+        return toDomainTask(entity);
     }
 
     public Task createTask(Task taskToCreate) {
@@ -43,8 +47,8 @@ public class TaskService {
         if (taskToCreate.createDateTime() != null) {
             throw new IllegalArgumentException("Creation DateTime should be empty!");
         }
-        var newTask = new Task(
-                idCounter.incrementAndGet(),
+        var entityToSave = new TaskEntity(
+                null,
                 taskToCreate.creatorId(),
                 taskToCreate.assignedUserId(),
                 TaskStatus.CREATED,
@@ -52,63 +56,76 @@ public class TaskService {
                 taskToCreate.deadlineDate(),
                 taskToCreate.priority()
         );
-        taskMap.put(newTask.id(), newTask);
-        return newTask;
+        var savedEntity = repository.save(entityToSave);
+        return toDomainTask(savedEntity);
     }
 
     public Task updateTask(Long id, Task taskToUpdate) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException(String.format("Task with id: %d is not found", id));
         }
-        Task task = taskMap.get(id);
-        if (task.status() == TaskStatus.DONE) {
+        var taskEntity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Task with id: %d is not found", id)
+                ));
+
+        if (taskEntity.getStatus() == TaskStatus.DONE) {
             throw new IllegalStateException("Cannot modify task that is done!");
         }
         if (taskToUpdate.createDateTime() != null) {
             throw new IllegalArgumentException("Creation DateTime should be empty!");
         }
-        Task updatedTask = new Task(
-                task.id(),
+        var entityToUpdate = new TaskEntity(
+                taskEntity.getId(),
                 taskToUpdate.creatorId(),
                 taskToUpdate.assignedUserId(),
                 TaskStatus.CREATED,
-                task.createDateTime(),
+                taskEntity.getCreateDateTime(),
                 taskToUpdate.deadlineDate(),
                 taskToUpdate.priority()
         );
-        taskMap.put(task.id(), updatedTask);
-        return updatedTask;
+        var updatedEntity = repository.save(entityToUpdate);
+        return toDomainTask(updatedEntity);
     }
 
     public void deleteTask(Long id) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException(String.format("Task with id: %d is not found", id));
         }
-        taskMap.remove(id);
+        repository.deleteById(id);
     }
 
     public Task makeTaskProgress(Long id) {
-        if (!taskMap.containsKey(id)) {
-            throw new NoSuchElementException(String.format("Task with id: %d is not found", id));
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException(String.format("Task with id: %d is not found", id));
         }
-        Task task = taskMap.get(id);
-        if (isTimeConflict(task)) {
-            throw new IllegalStateException(String.format("Task with id: %d, status: %s is overdue!", id, task.status()));
+        var taskEntity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Task with id: %d is not found", id)
+                ));
+        if (isTimeConflict(taskEntity)) {
+            throw new IllegalStateException(
+                    String.format("Task with id: %d, status: %s is overdue!", id, taskEntity.getStatus())
+            );
         }
-        Task progressedTask = new Task(
-                task.id(),
-                task.creatorId(),
-                task.assignedUserId(),
-                TaskStatus.IN_PROGRESS,
-                task.createDateTime(),
-                task.deadlineDate(),
-                task.priority()
-        );
-        taskMap.put(task.id(), progressedTask);
-        return progressedTask;
+        taskEntity.setStatus(TaskStatus.IN_PROGRESS);
+        var updatedEntity = repository.save(taskEntity);
+        return toDomainTask(updatedEntity);
     }
 
-    private boolean isTimeConflict(Task task) {
-        return task.deadlineDate().isBefore(LocalDate.now());
+    private boolean isTimeConflict(TaskEntity taskEntity) {
+        return taskEntity.getDeadlineDate().isBefore(LocalDate.now());
+    }
+
+    private Task toDomainTask(TaskEntity entity) {
+        return new Task(
+                entity.getId(),
+                entity.getCreatorId(),
+                entity.getAssignedUserId(),
+                entity.getStatus(),
+                entity.getCreateDateTime(),
+                entity.getDeadlineDate(),
+                entity.getPriority()
+        );
     }
 }
