@@ -1,5 +1,6 @@
 package ru.honsage.practice.taskmanagementsystem.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class TaskController {
         log.info("Method 'getTaskById' is invoked with id = {}", id);
         try {
             return ResponseEntity.ok().body(taskService.getTaskById(id));
-        } catch (NoSuchElementException e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
@@ -57,7 +58,7 @@ public class TaskController {
         log.info("Method 'updateTask' is invoked with id = {}, task = {}", id, taskToUpdate);
         try {
             return ResponseEntity.ok().body(taskService.updateTask(id, taskToUpdate));
-        } catch (NoSuchElementException e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -71,7 +72,7 @@ public class TaskController {
         log.info("Method 'deleteTask' is invoked with id = {}", id);
         try {
             taskService.deleteTask(id);
-        } catch (NoSuchElementException e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build();
@@ -82,7 +83,7 @@ public class TaskController {
         log.info("Method 'makeTaskProgress' is invoked with id = {}", id);
         try {
             return ResponseEntity.ok(taskService.makeTaskInProgress(id));
-        } catch (NoSuchElementException e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
