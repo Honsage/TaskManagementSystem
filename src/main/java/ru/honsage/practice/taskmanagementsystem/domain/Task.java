@@ -1,4 +1,4 @@
-package ru.honsage.practice.taskmanagementsystem;
+package ru.honsage.practice.taskmanagementsystem.domain;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package ru.honsage.practice.taskmanagementsystem;
+package ru.honsage.practice.taskmanagementsystem.domain;
 
 public enum TaskStatus {
     CREATED,
