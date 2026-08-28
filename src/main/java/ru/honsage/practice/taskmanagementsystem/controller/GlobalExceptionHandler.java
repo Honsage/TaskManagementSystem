@@ -31,23 +31,7 @@ public class GlobalExceptionHandler {
                 .body(errorDto);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponseDto> handleNotFound(EntityNotFoundException e) {
-        log.error("Handle NotFound", e);
-
-        var errorDto = new ErrorResponseDto(
-                "Entity not found",
-                e.getMessage(),
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(errorDto);
-    }
-
     @ExceptionHandler(exception = {
-            IllegalStateException.class,
             IllegalArgumentException.class,
             MethodArgumentNotValidException.class
     })
@@ -63,5 +47,36 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorDto);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNotFound(EntityNotFoundException e) {
+        log.error("Handle NotFound", e);
+
+        var errorDto = new ErrorResponseDto(
+                "Entity not found",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(errorDto);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDto> handleConflict(IllegalStateException e) {
+        log.error("Handle Conflict", e);
+
+        var errorDto = new ErrorResponseDto(
+                "Conflict",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorDto);
+
     }
 }
