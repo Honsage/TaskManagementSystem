@@ -10,13 +10,11 @@ import ru.honsage.practice.taskmanagementsystem.domain.Task;
 import ru.honsage.practice.taskmanagementsystem.service.TaskService;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
     private static final Logger log = LoggerFactory.getLogger(TaskController.class);
-
     private final TaskService taskService;
 
     public TaskController(TaskService taskService) {
@@ -88,5 +86,12 @@ public class TaskController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
+    }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Task> completeTask(
+            @PathVariable("id") Long id
+    ) {
+        return ResponseEntity.ok(taskService.makeTaskComplete(id));
     }
 }
