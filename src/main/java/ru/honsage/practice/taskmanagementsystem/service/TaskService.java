@@ -92,16 +92,13 @@ public class TaskService {
     }
 
     public Task makeTaskInProgress(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException(String.format("Task with id: %d is not found", id));
-        }
         var taskEntity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Task with id: %d is not found", id)
                 ));
         var assignedUserId = taskEntity.getAssignedUserId();
         if (assignedUserId == null) {
-            throw new IllegalStateException(String.format("Task with id: %d has no assigned user", id));
+            throw new IllegalArgumentException(String.format("Task with id: %d has no assigned user", id));
         }
         var tasks = repository.findAllByAssignedUserIdAndStatus(assignedUserId, TaskStatus.IN_PROGRESS);
         if (tasks.size() > 4) {
@@ -115,6 +112,25 @@ public class TaskService {
             );
         }
         taskEntity.setStatus(TaskStatus.IN_PROGRESS);
+        var updatedEntity = repository.save(taskEntity);
+        return toDomainTask(updatedEntity);
+    }
+
+    public Task makeTaskComplete(Long id) {
+        var taskEntity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Task with id: %d is not found", id)
+                ));
+        var assignedUserId = taskEntity.getAssignedUserId();
+        if (assignedUserId == null) {
+            throw new IllegalArgumentException(String.format("Task with id: %d has no assigned user", id));
+        }
+        var deadlineDate = taskEntity.getDeadlineDate();
+        if (deadlineDate == null) {
+            throw new IllegalArgumentException(String.format("Task with id: %d has no deadline date", id));
+        }
+
+        taskEntity.setStatus(TaskStatus.DONE);
         var updatedEntity = repository.save(taskEntity);
         return toDomainTask(updatedEntity);
     }
