@@ -30,22 +30,14 @@ public class TaskController {
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable("id") Long id) {
         log.info("Method 'getTaskById' is invoked with id = {}", id);
-        try {
-            return ResponseEntity.ok().body(taskService.getTaskById(id));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok().body(taskService.getTaskById(id));
     }
 
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody Task taskToCreate) {
         log.info("Method 'createTask' is invoked with task = {}", taskToCreate);
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(taskService.createTask(taskToCreate));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(taskService.createTask(taskToCreate));
     }
 
     @PutMapping("/{id}")
@@ -54,44 +46,27 @@ public class TaskController {
             @RequestBody Task taskToUpdate
     ) {
         log.info("Method 'updateTask' is invoked with id = {}, task = {}", id, taskToUpdate);
-        try {
-            return ResponseEntity.ok().body(taskService.updateTask(id, taskToUpdate));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok().body(taskService.updateTask(id, taskToUpdate));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable("id") Long id) {
         log.info("Method 'deleteTask' is invoked with id = {}", id);
-        try {
-            taskService.deleteTask(id);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        taskService.deleteTask(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/start")
     public ResponseEntity<Task> makeTaskInProgress(@PathVariable("id") Long id) {
         log.info("Method 'makeTaskProgress' is invoked with id = {}", id);
-        try {
-            return ResponseEntity.ok(taskService.makeTaskInProgress(id));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+        return ResponseEntity.ok(taskService.makeTaskInProgress(id));
     }
 
     @PostMapping("/{id}/complete")
     public ResponseEntity<Task> completeTask(
             @PathVariable("id") Long id
     ) {
+        log.info("Method 'completeTask' is invoked with id = {}", id);
         return ResponseEntity.ok(taskService.makeTaskComplete(id));
     }
 }
