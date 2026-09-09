@@ -18,6 +18,7 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository repository;
+
     private final TaskMapper mapper;
 
     public TaskService(TaskRepository repository, TaskMapper mapper) {
@@ -25,10 +26,7 @@ public class TaskService {
         this.mapper = mapper;
     }
 
-
-    public List<Task> searchAllByFilter(
-            TaskSearchFilter filter
-    ) {
+    public List<Task> searchAllByFilter(TaskSearchFilter filter) {
         int pageSize = filter.pageSize();
         int pageNumber = filter.pageNumber();
 
@@ -39,7 +37,6 @@ public class TaskService {
                 filter.assignedUserId(),
                 pageable
         );
-
         return allEntities.stream()
                 .map(mapper::toDomain).toList();
     }

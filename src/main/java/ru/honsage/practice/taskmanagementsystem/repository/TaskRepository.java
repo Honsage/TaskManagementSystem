@@ -20,8 +20,6 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
             @Param("status") TaskStatus status
     );
 
-    List<TaskEntity> findAllByAssignedUserIdAndStatus(Long assignedUserId, TaskStatus status);
-
     @Query("""
            select t.id from TaskEntity t
            where (:creatorId is null or t.creatorId = :creatorId)

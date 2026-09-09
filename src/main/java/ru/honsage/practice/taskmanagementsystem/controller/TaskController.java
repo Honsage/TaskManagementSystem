@@ -1,6 +1,5 @@
 package ru.honsage.practice.taskmanagementsystem.controller;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,7 +13,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
+
     private static final Logger log = LoggerFactory.getLogger(TaskController.class);
+
     private final TaskService taskService;
 
     public TaskController(TaskService taskService) {
@@ -28,7 +29,13 @@ public class TaskController {
             @RequestParam(name = "pageSize", required = false) Integer pageSize,
             @RequestParam(name = "pageNumber", required = false) Integer pageNumber
     ) {
-        log.info("Method 'getAllTasks' is invoked");
+        log.info(
+                "Method 'getAllTasks' is invoked with creatorId = {}, assignedUserId = {} and page: size = {}, number = {}",
+                creatorId,
+                assignedUserId,
+                pageSize,
+                pageNumber
+        );
         var filter = new TaskSearchFilter(
                 creatorId,
                 assignedUserId,
@@ -69,15 +76,13 @@ public class TaskController {
     }
 
     @PostMapping("/{id}/start")
-    public ResponseEntity<Task> makeTaskInProgress(@PathVariable("id") Long id) {
+    public ResponseEntity<Task> startTask(@PathVariable("id") Long id) {
         log.info("Method 'makeTaskProgress' is invoked with id = {}", id);
         return ResponseEntity.ok(taskService.makeTaskInProgress(id));
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<Task> completeTask(
-            @PathVariable("id") Long id
-    ) {
+    public ResponseEntity<Task> completeTask(@PathVariable("id") Long id) {
         log.info("Method 'completeTask' is invoked with id = {}", id);
         return ResponseEntity.ok(taskService.makeTaskComplete(id));
     }
