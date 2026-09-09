@@ -1,7 +1,9 @@
 package ru.honsage.practice.taskmanagementsystem.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import ru.honsage.practice.taskmanagementsystem.controller.TaskSearchFilter;
 import ru.honsage.practice.taskmanagementsystem.domain.Task;
 import ru.honsage.practice.taskmanagementsystem.domain.TaskStatus;
 import ru.honsage.practice.taskmanagementsystem.repository.TaskEntity;
@@ -23,8 +25,21 @@ public class TaskService {
         this.mapper = mapper;
     }
 
-    public List<Task> getAllTasks() {
-        List<TaskEntity> allEntities = repository.findAll();
+
+    public List<Task> searchAllByFilter(
+            TaskSearchFilter filter
+    ) {
+        int pageSize = filter.pageSize();
+        int pageNumber = filter.pageNumber();
+
+        var pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
+
+        List<TaskEntity> allEntities = repository.searchAllByFilter(
+                filter.creatorId(),
+                filter.assignedUserId(),
+                pageable
+        );
+
         return allEntities.stream()
                 .map(mapper::toDomain).toList();
     }

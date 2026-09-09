@@ -22,9 +22,21 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks() {
+    public ResponseEntity<List<Task>> getAllTasks(
+            @RequestParam(name = "creatorId", required = false) Long creatorId,
+            @RequestParam(name = "assignedUserId", required = false) Long assignedUserId,
+            @RequestParam(name = "pageSize", required = false) Integer pageSize,
+            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+    ) {
         log.info("Method 'getAllTasks' is invoked");
-        return ResponseEntity.ok().body(taskService.getAllTasks());
+        var filter = new TaskSearchFilter(
+                creatorId,
+                assignedUserId,
+                pageSize,
+                pageNumber
+        );
+
+        return ResponseEntity.ok().body(taskService.searchAllByFilter(filter));
     }
 
     @GetMapping("/{id}")
