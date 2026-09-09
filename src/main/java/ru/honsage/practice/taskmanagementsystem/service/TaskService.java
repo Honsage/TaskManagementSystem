@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.honsage.practice.taskmanagementsystem.domain.Task;
 import ru.honsage.practice.taskmanagementsystem.domain.TaskStatus;
 import ru.honsage.practice.taskmanagementsystem.repository.TaskEntity;
+import ru.honsage.practice.taskmanagementsystem.repository.TaskMapper;
 import ru.honsage.practice.taskmanagementsystem.repository.TaskRepository;
 
 import java.time.LocalDate;
@@ -13,16 +14,19 @@ import java.util.List;
 
 @Service
 public class TaskService {
-    private final TaskRepository repository;
 
-    public TaskService(TaskRepository repository) {
+    private final TaskRepository repository;
+    private final TaskMapper mapper;
+
+    public TaskService(TaskRepository repository, TaskMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     public List<Task> getAllTasks() {
         List<TaskEntity> allEntities = repository.findAll();
         return allEntities.stream()
-                .map(this::toDomainTask).toList();
+                .map(mapper::toDomain).toList();
     }
 
     public Task getTaskById(Long id) {
@@ -30,7 +34,7 @@ public class TaskService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Task with id: %d is not found", id)
                 ));
-        return toDomainTask(entity);
+        return mapper.toDomain(entity);
     }
 
     public Task createTask(Task taskToCreate) {
@@ -43,17 +47,13 @@ public class TaskService {
         if (taskToCreate.createDateTime() != null) {
             throw new IllegalArgumentException("Creation DateTime should be empty!");
         }
-        var entityToSave = new TaskEntity(
-                null,
-                taskToCreate.creatorId(),
-                taskToCreate.assignedUserId(),
-                TaskStatus.CREATED,
-                LocalDateTime.now(),
-                taskToCreate.deadlineDate(),
-                taskToCreate.priority()
-        );
+
+        var entityToSave = mapper.toEntity(taskToCreate);
+        entityToSave.setStatus(TaskStatus.CREATED);
+        entityToSave.setCreateDateTime(LocalDateTime.now());
+
         var savedEntity = repository.save(entityToSave);
-        return toDomainTask(savedEntity);
+        return mapper.toDomain(savedEntity);
     }
 
     public Task updateTask(Long id, Task taskToUpdate) {
@@ -71,17 +71,14 @@ public class TaskService {
         if (taskToUpdate.createDateTime() != null) {
             throw new IllegalArgumentException("Creation DateTime should be empty!");
         }
-        var entityToUpdate = new TaskEntity(
-                taskEntity.getId(),
-                taskToUpdate.creatorId(),
-                taskToUpdate.assignedUserId(),
-                TaskStatus.CREATED,
-                taskEntity.getCreateDateTime(),
-                taskToUpdate.deadlineDate(),
-                taskToUpdate.priority()
-        );
+
+        var entityToUpdate = mapper.toEntity(taskToUpdate);
+        entityToUpdate.setId(taskEntity.getId());
+        entityToUpdate.setStatus(TaskStatus.CREATED);
+        entityToUpdate.setCreateDateTime(taskEntity.getCreateDateTime());
+
         var updatedEntity = repository.save(entityToUpdate);
-        return toDomainTask(updatedEntity);
+        return mapper.toDomain(updatedEntity);
     }
 
     public void deleteTask(Long id) {
@@ -113,7 +110,7 @@ public class TaskService {
         }
         taskEntity.setStatus(TaskStatus.IN_PROGRESS);
         var updatedEntity = repository.save(taskEntity);
-        return toDomainTask(updatedEntity);
+        return mapper.toDomain(updatedEntity);
     }
 
     public Task makeTaskComplete(Long id) {
@@ -132,22 +129,10 @@ public class TaskService {
 
         taskEntity.setStatus(TaskStatus.DONE);
         var updatedEntity = repository.save(taskEntity);
-        return toDomainTask(updatedEntity);
+        return mapper.toDomain(updatedEntity);
     }
 
     private boolean isTimeConflict(TaskEntity taskEntity) {
         return taskEntity.getDeadlineDate().isBefore(LocalDate.now());
-    }
-
-    private Task toDomainTask(TaskEntity entity) {
-        return new Task(
-                entity.getId(),
-                entity.getCreatorId(),
-                entity.getAssignedUserId(),
-                entity.getStatus(),
-                entity.getCreateDateTime(),
-                entity.getDeadlineDate(),
-                entity.getPriority()
-        );
     }
 }
