@@ -10,6 +10,16 @@ import java.util.List;
 
 public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
+    @Query("""
+           select count(t) from TaskEntity t
+           where t.assignedUserId = :assignedUserId
+           and t.status = :status                                                 
+           """)
+    Long countOfTasksByAssignedUserIdAndStatus(
+            @Param("assignedUserId") Long assignedUserId,
+            @Param("status") TaskStatus status
+    );
+
     List<TaskEntity> findAllByAssignedUserIdAndStatus(Long assignedUserId, TaskStatus status);
 
     @Query("""

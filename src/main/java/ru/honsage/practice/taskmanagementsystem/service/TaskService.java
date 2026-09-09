@@ -112,8 +112,8 @@ public class TaskService {
         if (assignedUserId == null) {
             throw new IllegalArgumentException(String.format("Task with id: %d has no assigned user", id));
         }
-        var tasks = repository.findAllByAssignedUserIdAndStatus(assignedUserId, TaskStatus.IN_PROGRESS);
-        if (tasks.size() > 4) {
+        var tasksAmount = repository.countOfTasksByAssignedUserIdAndStatus(assignedUserId, TaskStatus.IN_PROGRESS);
+        if (tasksAmount > 4) {
             throw new IllegalStateException(
                     String.format("User with id: %d already has more than 4 tasks", assignedUserId)
             );
